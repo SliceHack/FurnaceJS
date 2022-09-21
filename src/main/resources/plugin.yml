@@ -1,0 +1,4 @@
+name: BukkitJS
+version: '${project.version}'
+main: me.nickrest.bukkitjs.BukkitJS
+api-version: 1.15
