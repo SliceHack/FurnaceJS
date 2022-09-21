@@ -1,4 +1,4 @@
-package me.nickrest.bukkitjs.javascript;
+package com.sliceclient.furnacejs.javascript;
 
 import lombok.Getter;
 import lombok.Setter;

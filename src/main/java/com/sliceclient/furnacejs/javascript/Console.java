@@ -1,4 +1,4 @@
-package me.nickrest.bukkitjs.javascript;
+package com.sliceclient.furnacejs.javascript;
 
 /**
  * Console logger for the scripting language.

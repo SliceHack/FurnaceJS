@@ -1,4 +1,4 @@
-name: BukkitJS
+name: FurnaceJS
 version: '${project.version}'
-main: me.nickrest.bukkitjs.BukkitJS
+main: com.sliceclient.furnacejs.FurnaceJS
 api-version: 1.15

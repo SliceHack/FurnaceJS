@@ -1,9 +1,7 @@
-package me.nickrest.bukkitjs;
+package com.sliceclient.furnacejs;
 
 import lombok.Getter;
-import me.nickrest.bukkitjs.javascript.JavaScript;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import com.sliceclient.furnacejs.javascript.JavaScript;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,7 +11,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.HashMap;
 
 @Getter
-public final class BukkitJS extends JavaPlugin implements Listener {
+public final class FurnaceJS extends JavaPlugin implements Listener {
 
     private final HashMap<Player, JavaScript> scripts = new HashMap<>();
 
