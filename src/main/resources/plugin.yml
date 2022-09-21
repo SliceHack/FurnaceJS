@@ -1,4 +1,15 @@
 name: FurnaceJS
 version: '${project.version}'
 main: com.sliceclient.furnacejs.FurnaceJS
+description: This plugin is so cool a description can't even describe it.
 api-version: 1.15
+authors: [NickRest, God Mode]
+website: github.com/sliceclient/furnacejs
+prefix: FurnaceJS
+commands:
+  reload:
+    description: Reloads the plugin
+permissions:
+    furnacejs.reload:
+        description: Allows the user to reload the plugin
+        default: op

@@ -1,5 +1,7 @@
 package com.sliceclient.furnacejs.javascript;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import jdk.internal.util.xml.impl.Pair;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -11,6 +13,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 @Getter @Setter
 public class JavaScript {
@@ -78,7 +84,7 @@ public class JavaScript {
         return null;
     }
 
-    public void reload() {
+    public List<Object> reload() {
         stop();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -91,8 +97,11 @@ public class JavaScript {
             reader.close();
 
             for(String s : builder.toString().split("\n")) eval(s);
+
+            return Arrays.asList(new Date().getTime(), true);
         } catch (Exception e) {
             e.printStackTrace();
+            return Arrays.asList(new Date().getTime(), false);
         }
     }
 
