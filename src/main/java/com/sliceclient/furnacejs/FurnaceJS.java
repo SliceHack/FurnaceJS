@@ -8,38 +8,32 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
 import java.util.HashMap;
 
 @Getter
 public final class FurnaceJS extends JavaPlugin implements Listener {
 
-    private final HashMap<Player, JavaScript> scripts = new HashMap<>();
+    private JavaScript script;
 
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
+        createDataFolder();
+        script = new JavaScript(new File(getDataFolder(), "test.js"));
     }
 
     @EventHandler
     public void onPlayerChat(PlayerChatEvent event) {
-        try {
-            String message = event.getMessage();
+        if(!event.getMessage().equalsIgnoreCase("reload")) return;
 
-            int index = message.indexOf("js");
-            String js = message.substring(index + 3);
+        script.reload();
+    }
 
-            if (index == -1) return;
-            if (js.replace(" ", "").isEmpty()) return;
+    @SuppressWarnings("all")
+    public void createDataFolder() {
+        if(getDataFolder().exists()) return;
 
-            if (scripts.get(event.getPlayer()) == null) {
-                scripts.put(event.getPlayer(), new JavaScript());
-                scripts.get(event.getPlayer()).eval("const player = Bukkit.getPlayer('" + event.getPlayer().getName() + "');");
-            }
-
-            JavaScript script = scripts.get(event.getPlayer());
-
-            script.eval(js);
-            event.setCancelled(true);
-        } catch (Exception ignored) {}
+        getDataFolder().mkdir();
     }
 }

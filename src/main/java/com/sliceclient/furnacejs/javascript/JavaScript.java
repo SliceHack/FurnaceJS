@@ -7,6 +7,11 @@ import org.bukkit.ChatColor;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+
 @Getter @Setter
 public class JavaScript {
 
@@ -16,8 +21,15 @@ public class JavaScript {
     private Scriptable scope = context.initStandardObjects(), scriptable = context.newObject(scope);
     private int lines = 0;
 
-    public JavaScript() {
-        context.setLanguageVersion(Context.VERSION_ES6);
+    private File file;
+
+    public JavaScript(File file) {
+        this.context.setLanguageVersion(Context.VERSION_ES6);
+        this.file = file;
+        this.setup();
+    }
+
+    public void setup() {
         putClass(Bukkit.class);
         putClass("console", Console.class);
     }
@@ -66,13 +78,26 @@ public class JavaScript {
         return null;
     }
 
-    /**
-     * Gets a variable from the script engine.
-     *
-     * @param name The name of the variable.
-     * */
-    public Object getVariable(String name) {
-        return "return " + name + ";";
+    public void reload() {
+        stop();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+
+            StringBuilder builder = new StringBuilder();
+            String line;
+            while((line = reader.readLine()) != null) {
+                builder.append(line);
+            }
+            reader.close();
+
+            for(String s : builder.toString().split("\n")) eval(s);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stop() {
+        for(int i = 0; i <= lines; i++) context.evaluateString(scope, "", "script", i, null);
     }
 
     /***
