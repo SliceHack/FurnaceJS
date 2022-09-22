@@ -7,9 +7,9 @@ authors: [NickRest, God Mode]
 website: github.com/sliceclient/furnacejs
 prefix: FurnaceJS
 commands:
-  reload:
-    description: Reloads the plugin
+  script:
+    description: used for handling scripts
 permissions:
-    furnacejs.reload:
-        description: Allows the user to reload the plugin
-        default: op
+  furnacejs.reload:
+    description: Allows the user to reload a script
+    default: op

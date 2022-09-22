@@ -1,7 +1,5 @@
 package com.sliceclient.furnacejs.javascript;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-import jdk.internal.util.xml.impl.Pair;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -11,9 +9,7 @@ import org.mozilla.javascript.Scriptable;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;

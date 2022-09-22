@@ -1,28 +1,36 @@
 package com.sliceclient.furnacejs;
 
-import com.sliceclient.furnacejs.commands.ReloadCommand;
+import com.sliceclient.furnacejs.commands.ScriptCommand;
+import com.sliceclient.furnacejs.subcommand.manager.SubCommandManager;
 import lombok.Getter;
 import com.sliceclient.furnacejs.javascript.JavaScript;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Objects;
 
 @Getter
 public final class FurnaceJS extends JavaPlugin implements Listener {
 
-    public static ArrayList<JavaScript> scripts = new ArrayList<>();
+    public static FurnaceJS instance;
+
+    private SubCommandManager subCommandManager;
+
+    public ArrayList<JavaScript> scripts = new ArrayList<>();
 
     @Override
     public void onEnable() {
-        getServer().getPluginManager().registerEvents(this, this);
+        instance = this;
+        subCommandManager = new SubCommandManager();
+
+        registerListener(this);
+
         createDataFolder();
         if (!getDataFolder().exists()) return;
         for (File file : Objects.requireNonNull(getDataFolder().listFiles())) {
@@ -31,7 +39,7 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
             }
         }
 
-        registerCommand("reload", new ReloadCommand(getDataFolder()));
+        registerCommand("script", new ScriptCommand());
     }
 
     @SuppressWarnings("all")
@@ -43,5 +51,13 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
 
     public void registerCommand(String name, CommandExecutor commandExecutor) {
         Objects.requireNonNull(getCommand(name)).setExecutor(commandExecutor);
+    }
+
+    public void registerListener(Listener listener) {
+        getServer().getPluginManager().registerEvents(listener, this);
+    }
+
+    public JavaScript getScript(String name) {
+        return scripts.stream().filter(script -> script.getFile().getName().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 }
