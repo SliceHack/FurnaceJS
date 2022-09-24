@@ -5,14 +5,14 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.NativeJavaArray;
+import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 
+import javax.script.Invocable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 
 @Getter @Setter
 public class JavaScript {
@@ -32,8 +32,7 @@ public class JavaScript {
     }
 
     public void setup() {
-        putClass(Bukkit.class);
-        putClass("console", Console.class);
+        reload();
     }
 
     /**
@@ -51,7 +50,7 @@ public class JavaScript {
      * @param clazz the class to put in the engine
      * */
     public void putClass(String value, Class<?> clazz) {
-        eval("const " + value + " = Packages." + clazz.getName() + ";");
+        context.getWrapFactory().wrapJavaClass(context, scope, clazz);
     }
 
     /**
@@ -61,6 +60,12 @@ public class JavaScript {
      * */
     public void addChatMessage(String message) {
         Bukkit.broadcastMessage(message);
+    }
+
+
+    public void put(String name, Object object) {
+        Scriptable scriptable = context.getWrapFactory().wrapAsJavaObject(context, scope, object, null);
+        scope.put(name, scope, scriptable);
     }
 
     /**
@@ -80,8 +85,17 @@ public class JavaScript {
         return null;
     }
 
-    public List<Object> reload() {
+    public void reload() {
+        lines = 0;
+        context = Context.enter();
+        context.getWrapFactory().setJavaPrimitiveWrap(false);
+        context.setOptimizationLevel(-1);
         stop();
+
+        put("script", this);
+        put("server", Bukkit.getServer());
+        putClass(Bukkit.class);
+        putClass("console", Console.class);
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));
 
@@ -93,11 +107,8 @@ public class JavaScript {
             reader.close();
 
             for(String s : builder.toString().split("\n")) eval(s);
-
-            return Arrays.asList(new Date().getTime(), true);
         } catch (Exception e) {
             e.printStackTrace();
-            return Arrays.asList(new Date().getTime(), false);
         }
     }
 

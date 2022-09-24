@@ -6,12 +6,16 @@ import lombok.Getter;
 import com.sliceclient.furnacejs.javascript.JavaScript;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandMap;
+import org.bukkit.command.SimpleCommandMap;
+import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -59,5 +63,21 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
 
     public JavaScript getScript(String name) {
         return scripts.stream().filter(script -> script.getFile().getName().equalsIgnoreCase(name)).findFirst().orElse(null);
+    }
+
+    public void registerCommand(String name, BukkitCommand command) {
+        getCommandMap().register(name, command);
+    }
+
+    public SimpleCommandMap getCommandMap() {
+        SimpleCommandMap commandMap = null;
+        try {
+            Field field = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            field.setAccessible(true);
+            commandMap = (SimpleCommandMap) field.get(Bukkit.getServer());
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return commandMap;
     }
 }
