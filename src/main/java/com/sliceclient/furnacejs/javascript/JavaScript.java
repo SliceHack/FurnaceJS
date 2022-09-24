@@ -41,7 +41,8 @@ public class JavaScript {
      * @param clazz the class to put in the engine
      * */
     public void putClass(Class<?> clazz) {
-        eval("const " + clazz.getSimpleName() + " = Packages." + clazz.getName() + ";");
+        Scriptable scriptable = context.getWrapFactory().wrapJavaClass(context, scope, clazz);
+        scope.put(clazz.getSimpleName(), scope, scriptable);
     }
 
     /**
@@ -50,7 +51,8 @@ public class JavaScript {
      * @param clazz the class to put in the engine
      * */
     public void putClass(String value, Class<?> clazz) {
-        context.getWrapFactory().wrapJavaClass(context, scope, clazz);
+        Scriptable scriptable = context.getWrapFactory().wrapJavaClass(context, scope, clazz);
+        scope.put(value, scope, scriptable);
     }
 
     /**
