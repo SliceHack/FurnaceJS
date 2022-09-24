@@ -1,18 +1,21 @@
 package com.sliceclient.furnacejs.javascript;
 
+import com.sliceclient.furnacejs.FurnaceJS;
+import com.sliceclient.furnacejs.script.ScriptCommand;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.NativeJavaArray;
-import org.mozilla.javascript.Script;
-import org.mozilla.javascript.Scriptable;
+import org.bukkit.command.Command;
+import org.bukkit.command.SimpleCommandMap;
+import org.mozilla.javascript.*;
 
-import javax.script.Invocable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @Getter @Setter
 public class JavaScript {
@@ -25,6 +28,8 @@ public class JavaScript {
 
     private File file;
 
+    private List<ScriptCommand> commands = new ArrayList<>();
+
     public JavaScript(File file) {
         this.context.setLanguageVersion(Context.VERSION_ES6);
         this.file = file;
@@ -34,6 +39,7 @@ public class JavaScript {
     public void setup() {
         reload();
     }
+
 
     /**
      * Puts a class in the engine
@@ -96,6 +102,7 @@ public class JavaScript {
 
         put("script", this);
         put("server", Bukkit.getServer());
+        for(ChatColor color : ChatColor.values()) put(color.name(), color);
         putClass(Bukkit.class);
         putClass("console", Console.class);
         try {
@@ -125,6 +132,41 @@ public class JavaScript {
      * */
     public void printError(Exception e) {
         addChatMessage(ChatColor.RED + e.getMessage());
+    }
+
+    /**
+     * This method is called by the script
+     *
+     * @param name the name of the command
+     * @param function the function to call
+     * */
+    public void registerCommand(String name, Function function) {
+        FurnaceJS js = FurnaceJS.instance;
+
+        if(getCommand(name) != null) {
+            ScriptCommand command = getCommand(name);
+            command.getExecute().setScript(this);
+            command.getExecute().setFunction(function);
+            return;
+        }
+
+        ScriptCommand scriptCommand = new ScriptCommand(name, this, function);
+        Command command = js.getCommandByName(name);
+
+        js.unregisterCommand(command);
+        js.registerCommand(scriptCommand);
+        commands.add(scriptCommand);
+    }
+
+    public void unregisterCommand(String name) {
+        FurnaceJS js = FurnaceJS.instance;
+        Command command = js.getCommandByName(name);
+        js.unregisterCommand(command);
+        commands.remove(getCommand(name));
+    }
+
+    public ScriptCommand getCommand(String name) {
+        return commands.stream().filter(command -> command.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
 }

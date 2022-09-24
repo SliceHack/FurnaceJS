@@ -5,6 +5,7 @@ import com.sliceclient.furnacejs.subcommand.manager.SubCommandManager;
 import lombok.Getter;
 import com.sliceclient.furnacejs.javascript.JavaScript;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.SimpleCommandMap;
@@ -65,8 +66,8 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
         return scripts.stream().filter(script -> script.getFile().getName().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
-    public void registerCommand(String name, BukkitCommand command) {
-        getCommandMap().register(name, command);
+    public void registerCommand(BukkitCommand command) {
+        getCommandMap().register(getPlugin(FurnaceJS.class).getName().toLowerCase(), command);
     }
 
     public SimpleCommandMap getCommandMap() {
@@ -79,5 +80,20 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
             e.printStackTrace();
         }
         return commandMap;
+    }
+
+    public Command getCommandByName(String name) {
+        return getCommandMap().getCommand(name);
+    }
+
+    public void unregisterCommand(String name) {
+        Command command = getCommandByName(name);
+        if (command == null) return;
+        command.unregister(getCommandMap());
+    }
+
+    public void unregisterCommand(Command command) {
+        if (command == null) return;
+        command.unregister(getCommandMap());
     }
 }
