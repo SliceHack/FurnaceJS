@@ -50,7 +50,13 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
                 scripts.add(new JavaScript(file));
             }
         }
-        executor = (listener, event) -> scripts.forEach(script -> script.callEvent(convertToScriptEvent(event.getClass().getSimpleName()), event));
+        executor = (listener, event) -> scripts.forEach(script -> {
+            try {
+                script.callEvent(convertToScriptEvent(event.getClass().getSimpleName()), event);
+            } catch (Exception e) {
+                script.printError(e);
+            }
+        });
         listener = new RegisteredListener(this, executor, EventPriority.NORMAL, this, false);
         registerRegisteredListener(listener);
 
