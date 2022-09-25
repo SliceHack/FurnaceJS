@@ -110,7 +110,6 @@ public class JavaScript {
             StringBuilder builder = new StringBuilder();
             String line;
             while((line = reader.readLine()) != null) {
-                if(line.startsWith("//")) continue;
                 builder.append(line);
             }
             reader.close();
