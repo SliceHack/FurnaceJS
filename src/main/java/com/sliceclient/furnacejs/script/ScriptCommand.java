@@ -4,9 +4,8 @@ import com.sliceclient.furnacejs.javascript.JavaScript;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.defaults.BukkitCommand;
 import org.mozilla.javascript.Function;
 
 /**
@@ -15,7 +14,7 @@ import org.mozilla.javascript.Function;
  * @author Nick
  */
 @Getter @Setter
-public class ScriptCommand extends BukkitCommand {
+public class ScriptCommand extends Command {
 
     private ScriptCommandExecuter execute;
 

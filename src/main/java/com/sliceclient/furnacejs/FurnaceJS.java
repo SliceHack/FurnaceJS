@@ -4,19 +4,23 @@ import com.sliceclient.furnacejs.commands.ScriptCommand;
 import com.sliceclient.furnacejs.subcommand.manager.SubCommandManager;
 import lombok.Getter;
 import com.sliceclient.furnacejs.javascript.JavaScript;
+import lombok.NonNull;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandMap;
 import org.bukkit.command.SimpleCommandMap;
-import org.bukkit.command.defaults.BukkitCommand;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.plugin.EventExecutor;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredListener;
+import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -28,6 +32,9 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
     private SubCommandManager subCommandManager;
 
     public ArrayList<JavaScript> scripts = new ArrayList<>();
+
+    public RegisteredListener listener;
+    public EventExecutor executor;
 
     @Override
     public void onEnable() {
@@ -43,6 +50,9 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
                 scripts.add(new JavaScript(file));
             }
         }
+        executor = (listener, event) -> scripts.forEach(script -> script.callEvent(convertToScriptEvent(event.getClass().getSimpleName()), event));
+        listener = new RegisteredListener(this, executor, EventPriority.NORMAL, this, false);
+        registerRegisteredListener(listener);
 
         registerCommand("script", new ScriptCommand());
     }
@@ -52,22 +62,38 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
         if (getDataFolder().exists()) return;
 
         getDataFolder().mkdir();
+        Bukkit.getServer().reload();
     }
 
     public void registerCommand(String name, CommandExecutor commandExecutor) {
         Objects.requireNonNull(getCommand(name)).setExecutor(commandExecutor);
     }
 
+    public String convertToScriptEvent(String name) {
+        name = name.replace("Event", "");
+        return name.substring(0, 1).toLowerCase() + name.substring(1);
+    }
+
+    public void handleEvent(Event event) {
+        String scriptName = event.getClass().getSimpleName().replace("Event", "").toLowerCase();
+        scripts.forEach(script -> script.callEvent(scriptName, event));
+    }
+
     public void registerListener(Listener listener) {
         getServer().getPluginManager().registerEvents(listener, this);
+    }
+
+    public void registerRegisteredListener(RegisteredListener listener) {
+        for (HandlerList handler : HandlerList.getHandlerLists()) handler.register(listener);
     }
 
     public JavaScript getScript(String name) {
         return scripts.stream().filter(script -> script.getFile().getName().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
-    public void registerCommand(BukkitCommand command) {
+    public void registerCommand(Command command) {
         getCommandMap().register(getPlugin(FurnaceJS.class).getName().toLowerCase(), command);
+        reloadAllCommands();
     }
 
     public SimpleCommandMap getCommandMap() {
@@ -95,5 +121,28 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
     public void unregisterCommand(Command command) {
         if (command == null) return;
         command.unregister(getCommandMap());
+        reloadAllCommands();
+    }
+
+    public void setPluginManager(PluginManager pluginManager) {
+        try {
+            Field field = Bukkit.getServer().getClass().getDeclaredField("pluginManager");
+            field.setAccessible(true);
+            field.set(Bukkit.getServer(), pluginManager);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void reloadAllCommands() {
+        try {
+            Class<?> craftServer = Class.forName("org.bukkit.craftbukkit." + Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3] + ".CraftServer");
+
+            Method syncCommandsMethod = craftServer.getDeclaredMethod("syncCommands");
+            syncCommandsMethod.setAccessible(true);
+            syncCommandsMethod.invoke(Bukkit.getServer());
+        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 }
