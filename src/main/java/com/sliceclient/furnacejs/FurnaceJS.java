@@ -46,7 +46,7 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
         createDataFolder();
         if (!getDataFolder().exists()) return;
         for (File file : Objects.requireNonNull(getDataFolder().listFiles())) {
-            if (file.getName().endsWith(".js")) {
+            if (file.getName().endsWith(".js") && !file.getName().startsWith("-")) {
                 scripts.add(new JavaScript(file));
             }
         }
@@ -55,6 +55,11 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
         registerRegisteredListener(listener);
 
         registerCommand("script", new ScriptCommand());
+    }
+
+    @Override
+    public void onDisable() {
+        scripts.forEach(JavaScript::stop);
     }
 
     @SuppressWarnings("all")
@@ -72,11 +77,6 @@ public final class FurnaceJS extends JavaPlugin implements Listener {
     public String convertToScriptEvent(String name) {
         name = name.replace("Event", "");
         return name.substring(0, 1).toLowerCase() + name.substring(1);
-    }
-
-    public void handleEvent(Event event) {
-        String scriptName = event.getClass().getSimpleName().replace("Event", "").toLowerCase();
-        scripts.forEach(script -> script.callEvent(scriptName, event));
     }
 
     public void registerListener(Listener listener) {

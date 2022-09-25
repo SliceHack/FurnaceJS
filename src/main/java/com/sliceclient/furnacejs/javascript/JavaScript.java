@@ -129,6 +129,7 @@ public class JavaScript {
     public void stop() {
         commands.forEach(command -> command.unregister(FurnaceJS.instance.getCommandMap()));
         events.clear();
+        FurnaceJS.instance.reloadAllCommands();
     }
 
     /***
@@ -183,6 +184,7 @@ public class JavaScript {
         js.unregisterCommand(command);
 
         if(command instanceof ScriptCommand) { commands.remove(command); }
+        FurnaceJS.instance.reloadAllCommands();
     }
 
     public Command getCommand(String name) {
