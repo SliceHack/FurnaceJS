@@ -13,7 +13,9 @@ import org.mozilla.javascript.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 
 @Getter @Setter
 @SuppressWarnings("unused")
@@ -28,6 +30,7 @@ public class JavaScript {
     private File file;
 
     private HashMap<String, Function> events = new HashMap<>();
+    private ArrayList<ScriptCommand> commands = new ArrayList<>();
 
     public JavaScript(File file) {
         this.context.setLanguageVersion(Context.VERSION_ES6);
@@ -97,6 +100,8 @@ public class JavaScript {
         context = Context.enter();
         context.getWrapFactory().setJavaPrimitiveWrap(false);
         context.setOptimizationLevel(-1);
+        context.setLanguageVersion(Context.VERSION_ES6);
+        scope = context.initStandardObjects();
         stop();
 
         put("script", this);
@@ -122,8 +127,8 @@ public class JavaScript {
     }
 
     public void stop() {
+        commands.forEach(command -> command.unregister(FurnaceJS.instance.getCommandMap()));
         events.clear();
-        for(int i = 0; i <= lines; i++) context.evaluateString(scope, "", "script", i, null);
     }
 
     /***
@@ -141,7 +146,7 @@ public class JavaScript {
      * @param name the name of the command
      * @param function the function to call
      * */
-    public void registerCommand(String name, Function function) {
+    public ScriptCommand registerCommand(String name, Function function) {
         FurnaceJS js = FurnaceJS.instance;
 
         if(getCommand(name) != null) {
@@ -149,7 +154,7 @@ public class JavaScript {
             if(command instanceof ScriptCommand) {
                 ScriptCommand scriptCommand = (ScriptCommand) command;
                 scriptCommand.setExecute(new ScriptCommandExecuter(this, function));
-                return;
+                return scriptCommand;
             }
         }
 
@@ -158,6 +163,8 @@ public class JavaScript {
 
         js.unregisterCommand(command);
         js.registerCommand(scriptCommand);
+        commands.add(scriptCommand);
+        return scriptCommand;
     }
 
     /**
@@ -174,6 +181,8 @@ public class JavaScript {
         FurnaceJS js = FurnaceJS.instance;
         Command command = js.getCommandByName(name);
         js.unregisterCommand(command);
+
+        if(command instanceof ScriptCommand) { commands.remove(command); }
     }
 
     public Command getCommand(String name) {
